@@ -5,7 +5,8 @@ description: "Demonstrates how to use the ads_sdk_overseas plugin."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 environment:
-  sdk: ^3.11.0
+  # 与根包一致，兼容 Dart 3.11.0-beta（>=3.5.0 <4.0.0）
+  sdk: '>=3.5.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
