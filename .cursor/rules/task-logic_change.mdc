@@ -1,0 +1,121 @@
+---
+description: 逻辑修改任务规则
+globs: 
+alwaysApply: false
+---
+
+# 逻辑修改任务规则
+
+> **改动范围**：若改动在 **lib（SDK）**，须保持 SDK API 稳定与向后兼容，重点维护平台接口与 Method Channel 契约；若在 **example（Demo）**，可沿用应用级逻辑与状态管理（如 GetX、服务层等）。见 `01-项目结构说明.mdc`。
+
+## 修改流程
+
+### 1. 理解现有逻辑
+- **必须**先完整理解现有代码的逻辑
+- 分析现有逻辑的设计意图
+- 识别依赖关系和影响范围
+- 查看相关的业务规则和文档
+
+### 2. 影响范围分析
+- 确定哪些文件会受到影响
+- 识别依赖此逻辑的其他代码
+- 考虑对现有功能的影响
+- 评估是否需要更新测试用例
+
+### 3. 修改原则
+- **保持接口一致性**：尽量不改变公共接口
+- **向后兼容**：确保现有功能不受影响
+- **单一职责**：每个函数/类只负责一个功能
+- **可测试性**：确保逻辑易于测试
+
+### 4. 代码组织
+- 使用清晰的方法名和变量名
+- 添加必要的注释说明复杂逻辑
+- 将复杂逻辑拆分为小函数
+- 保持代码的可读性
+
+### 5. 状态管理
+- 确保状态更新的正确性
+- 使用 GetX 的响应式更新机制
+- 避免不必要的状态更新
+- 处理异步状态更新
+
+## 代码规范
+
+### lib（SDK）逻辑修改
+- 保持 **Platform Interface** 与 **Method Channel** 的契约一致；修改协议或返回值时考虑调用方兼容性
+- 平台层异常需转为对调用方友好的错误或返回值（见 `06-编码规范.mdc`）
+- 不破坏已对外暴露的 API 签名与行为
+
+### example（Demo）逻辑修改
+- **GetX Controller**（仅 example 使用 GetX 时）：业务逻辑放在 Controller 中，UI 相关逻辑放在 View 中；使用 `update()` 通知 UI 更新；保持 Controller 轻量
+- **服务层**：若 example 内有 `example/lib/apis/`、`example/lib/services/`，API 与业务服务放在对应目录，保持单一职责并添加错误处理
+- **数据模型**：若 example 内有 `example/lib/models/`，确保模型与 API 响应匹配并做必要校验
+
+## 检查清单
+
+修改完成后，检查以下项目：
+
+- [ ] 现有功能仍然正常工作
+- [ ] 新逻辑符合业务需求
+- [ ] 代码符合项目规范
+- [ ] 相关依赖已更新
+- [ ] 错误处理已添加
+- [ ] 日志记录已添加（如需要）
+- [ ] 代码可读性良好
+- [ ] 没有引入性能问题
+
+## 示例修改模式
+
+### Controller 逻辑分离
+```dart
+// ✅ 好的做法：将复杂逻辑提取为独立方法
+void processData() {
+  final validated = validateInput();
+  if (!validated) return;
+  
+  final processed = transformData();
+  saveData(processed);
+  update();
+}
+
+bool validateInput() {
+  // 验证逻辑
+}
+
+Data transformData() {
+  // 转换逻辑
+}
+```
+
+### 异步逻辑处理
+```dart
+// ✅ 好的做法：正确处理异步操作
+Future<void> loadData() async {
+  try {
+    isLoading = true;
+    update();
+    
+    final data = await api.fetchData();
+    this.data = data;
+    
+    isLoading = false;
+    update();
+  } catch (e) {
+    isLoading = false;
+    update();
+    handleError(e);
+  }
+}
+```
+
+### 条件逻辑清晰化
+```dart
+// ❌ 不清晰
+if (a && b || c && !d) { }
+
+// ✅ 清晰
+final condition1 = a && b;
+final condition2 = c && !d;
+if (condition1 || condition2) { }
+```

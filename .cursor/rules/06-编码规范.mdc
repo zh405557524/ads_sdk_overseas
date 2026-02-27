@@ -1,0 +1,62 @@
+---
+description: 编码规范 - lib（SDK）与 example（Demo）分别约定
+globs: 
+alwaysApply: true
+---
+# 编码规范
+
+本规范按 **lib（SDK）** 与 **example（Demo）** 分别约定，生成或修改代码时请先确认改动所在目录（见 `01-项目结构说明.mdc`）。
+
+---
+
+## 通用约定（lib 与 example 共用）
+
+### 命名约定
+
+- 文件和目录名使用 `snake_case`（蛇形命名法）
+- 变量和函数使用 `camelCase`（驼峰命名法）
+- 类、枚举和类型名称使用 `PascalCase`（帕斯卡命名法）
+- 常量使用 `SCREAMING_SNAKE_CASE`（大写蛇形命名法）
+
+### 导入顺序
+
+按以下顺序排列导入：
+
+1. Dart SDK 导入
+2. Flutter 导入
+3. 第三方包导入
+4. 本包/应用内导入（lib 内为相对导入，example 内为 package 或相对导入）
+
+### 错误处理原则
+
+- 使用 try-catch 进行错误处理
+- 适当记录错误日志（可用 logger）
+- 对用户或调用方提供清晰、可理解的错误信息或返回值
+
+---
+
+## lib（SDK）规范
+
+- **文件组织**：保持 lib 内文件少而清晰；可选用 `index.dart` 或单文件导出；**公开 API 仅通过主库入口文件导出**（如 `ads_sdk_overseas.dart`）。
+- **状态与依赖**：**不在 lib 中引入 GetX、store、global 等应用级状态管理**；SDK 保持无状态或仅内部实现所需状态。
+- **平台与异常**：Platform 层（Method Channel、原生调用）的异常需转为对调用方友好的错误或返回值，避免直接抛出平台异常。
+- **文档**：对外公共 API 必须使用 `///` 文档注释，说明用途、参数、返回值及异常情况。
+
+---
+
+## example（Demo）规范
+
+- **文件组织**：若 example 内有多模块，可使用桶文件（`index.dart`）从目录导出；保持文件职责清晰。
+- **状态与路由**：example 内可自由选择状态管理与路由（如 GetX、go_router 等）；若采用 GetX，可在 example 内定义 store/controller，在 example 的入口或 global 中初始化。
+- **错误与提示**：在 example 内对 SDK 调用做 try-catch，并向用户展示友好提示（如 Toast、SnackBar）。
+
+---
+
+## 小结
+
+| 项目         | lib（SDK）           | example（Demo）           |
+|--------------|----------------------|---------------------------|
+| 公开 API     | 仅主库文件导出        | 无对外 API                |
+| 状态管理     | 不使用 GetX/store 等  | 可自由选用                |
+| 公共 API 注释| 必须 `///`            | 建议有注释                |
+| 异常         | 转为友好错误/返回值  | 可捕获并做 UI 提示        |

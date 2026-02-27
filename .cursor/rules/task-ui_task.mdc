@@ -1,0 +1,94 @@
+---
+description: UI处理任务规则 - 仅适用于 example 演示应用
+globs: 
+alwaysApply: false
+---
+
+# UI处理任务规则（仅适用于 example）
+
+> **适用范围**：所有 UI 修改仅针对 **example** 演示应用。**不要修改 lib 中的 SDK 代码**——SDK（lib）不包含业务 UI。
+> 组件、主题、布局、资源路径均以 **example** 为根：`example/lib/`、`example/assets/` 等。Figma 仅用于 example 界面。
+
+## UI修改流程
+
+### 1. 理解设计要求
+
+- 查看设计稿或需求描述
+- 理解 UI 的交互逻辑
+- 识别需要使用的组件
+- 确定样式和布局要求
+
+### 2. 组件选择
+
+- 优先使用 **example** 内现有的组件（如 `example/lib/components/`、`example/lib/widgets/`，若存在）
+- 查看是否有可复用的 UI 组件
+- 若不存在，在 example 内考虑创建可复用组件
+- 遵循项目的 UI 设计规范
+
+### 3. 布局原则
+
+- 使用 Flutter 的布局组件（Row, Column, Stack, Flex 等）
+- 保持响应式设计，适配不同屏幕尺寸
+- 使用适当的间距和边距
+- 保持 UI 一致性
+
+### 4. 样式规范
+
+- 若 example 内有主题，使用 **example** 的主题（如 `example/lib/theme.dart`）
+- 颜色、字体、间距使用主题或常量，避免硬编码
+- 保持与现有 UI 风格一致
+- 遵循 Material Design 或项目设计规范
+
+### 5. 状态管理（仅 example 内）
+
+- 若 example 使用 GetX，UI 状态可用 GetX Controller 管理
+- 使用 `Obx` 或 `GetBuilder` 实现响应式更新
+- 避免在 Widget 中直接管理复杂状态
+
+## UI调整流程（与设计稿差异）
+
+- **分析背景/字体颜色**：对比设计稿，优先使用 `Theme.of(context).colorScheme` 或 example 内定义的颜色常量。
+- **区域划分对比**：按标题栏、内容区、操作区等逐区对比设计稿，记录颜色、尺寸、间距、布局差异并逐一修复。
+- **图标与资源**：图标等资源放在 **example/assets/**，通过 `example` 应用内资源路径引用（如 `AssetImages.xxx` 若在 example 中有定义）；**禁止在 lib 中放业务 UI 资源**。
+- **尺寸与适配**：若 example 使用屏幕适配（如 flutter_screenutil），使用 `.w`、`.h`、`.sp`、`.r` 等；否则使用合理数值并保持一致性。
+
+## 代码与路径约定
+
+- **页面/组件**：放在 `example/lib/pages/`、`example/lib/widgets/` 等 **example/lib** 下，不要放在根目录的 `lib/`。
+- **资源**：图片等放在 `example/assets/`，在 example 的 `pubspec.yaml` 中声明 assets。
+- **主题/常量**：若需主题或颜色常量，在 **example/lib** 下维护（如 `example/lib/theme.dart`）。
+
+## Context 与 Controller（仅 example）
+
+- **禁止**在 Controller 中用 `Get.context` 获取 context；通过方法参数传递 context，或在 View 层使用 context。
+- 若 example 使用 GetX，Controller 在 `onClose()` 中正确释放资源。
+
+## 检查清单
+
+UI 修改完成后，检查：
+
+- [ ] 所有修改均在 **example** 内，未改动 **lib** 中的 SDK 代码
+- [ ] UI 符合设计要求，在不同屏幕尺寸下正常显示
+- [ ] 使用了 example 内主题/样式（若存在），无硬编码颜色/尺寸（或已注明原因）
+- [ ] 资源路径指向 **example**（如 `example/assets/`），并在 example 的 pubspec 中声明
+- [ ] 交互逻辑正确，状态更新正确（若使用 GetX）
+- [ ] 代码结构清晰，易于维护
+
+## 示例（路径限定在 example）
+
+```dart
+// ✅ 正确：在 example 内使用主题与资源
+// 文件位于 example/lib/pages/demo_page.dart
+Container(
+  color: Theme.of(context).colorScheme.surface,
+  child: Text(
+    '示例',
+    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+  ),
+)
+```
+
+```dart
+// ❌ 错误：在 lib（SDK）中写业务 UI 或引用业务资源
+// lib/ 仅用于 SDK API，不包含业务页面与资源
+```

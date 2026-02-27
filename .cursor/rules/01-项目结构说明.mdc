@@ -1,0 +1,30 @@
+---
+description: SDK/插件工程结构说明 - lib 为对外 API，example 为演示应用
+globs: 
+alwaysApply: true
+---
+# 项目结构说明（SDK/插件工程）
+
+本仓库为 **Flutter 插件/SDK** 工程，不是单一完整应用。生成或修改代码前必须先明确：改动属于 **lib（SDK）** 还是 **example（Demo）**，再选用对应规范。
+
+## 工程结构
+
+- **根目录**：Flutter plugin 包，`pubspec.yaml` 中通过 `plugin:` 配置 Android/iOS 插件信息。
+- **lib/**：插件/SDK 提供给**外部使用**的代码；对外只暴露通过主入口（如 `package:ads_sdk_overseas/ads_sdk_overseas.dart`）导出的 API。不包含完整 App 的 pages、routes、store 等。
+- **example/**：独立 Flutter 应用，`example/pubspec.yaml` 通过 `path: ../` 依赖根目录插件，用于**演示和测试** SDK 能力；可自由使用 GetX、go_router、自定义 UI 等。
+- **android/、ios/**：插件的原生实现，与 lib 中的 Method Channel 对应。
+
+## 目录职责
+
+| 目录 | 职责 | 对外 API |
+|------|------|----------|
+| lib/ | 对外 API、Platform Interface、Method Channel 实现 | 仅通过主库文件导出（如 `ads_sdk_overseas.dart`） |
+| example/ | Demo 应用，演示 SDK 用法与集成测试 | 无；仅内部使用 |
+| test/ | SDK 单元测试 | - |
+
+## 任务与规范对应
+
+- **修改 lib/**：遵循 SDK 编码规范（见 `06-编码规范.mdc`）；新功能见 `task-new_feature.mdc` 的「lib 中新增能力」；Bug 修复注意不破坏公共 API，见 `task-bug_fix.mdc`。
+- **修改 example/**：UI 任务见 `task-ui_task.mdc`；若 example 使用路由/状态管理，则导航见 `02-导航.mdc`、多语言见 `07-多语言支持.mdc`；新功能见 `task-new_feature.mdc` 的「example 中新增演示」。
+
+生成代码前请先判断：**本次改动在 lib（SDK）还是 example（Demo）**，再应用对应规则文件。

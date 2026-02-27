@@ -1,0 +1,128 @@
+---
+description: 代码生成工作流程 - 任务类型判断和规则应用（SDK/插件工程）
+globs: 
+alwaysApply: true
+---
+# 强制工作流程 - 必须首先执行
+
+**在生成任何代码之前，必须完成以下步骤：**
+
+0. **读取 Figma 设计**（仅当修改 **example** 的 UI 且用户提供 Figma 链接时**最优先**执行，见下方「Figma 设计读取规则」）
+0.1. **大功能先规划**：若用户要求「先制定计划」「先规划再写代码」「大功能分步做」等，则**先只输出计划、多轮完善，待用户确认后再生成代码**，不在此阶段写代码。（若项目中有 `09-大功能先规划再编码.mdc`，可遵循该文件细化流程。）
+1. **判断任务类型**（根据关键词）
+2. **判断改动范围**：本次改动在 **lib（SDK）** 还是 **example（Demo）**，见 `01-项目结构说明.mdc`
+3. **读取对应规则文件**（task-xxx.mdc）
+4. **检查 SDK/Example 复用**（见下方，仅在 new_feature、ui_task 或用户明确要求时执行）
+5. **应用规则生成代码**
+6. **验证检查清单**
+7. **引用规范**：见下方（lib 与 example 分开）
+
+**如果跳过此流程，代码生成将不符合项目规范！**
+
+---
+
+## Figma 设计读取规则（仅用于 example 的 UI）
+
+> **仅当修改 example 的 UI 且用户提供 Figma 链接时使用**，以 Figma 设计为最终 UI 标准。
+
+### 执行步骤
+
+1. **加入频道**：调用 `user-TalkToFigma` MCP 的 `join_channel`，使用当前已连接的 channel ID。
+2. **读取节点**：从 Figma URL 中提取 `node-id`（如 `3419-9197`），将连字符替换为冒号（`3419:9197`），调用 `get_node_info` 获取完整设计数据。
+3. **解析设计**：根据节点返回的 JSON，提取页面整体尺寸与背景色、各子节点的 `name`、`type`、`fills`、`cornerRadius`、`absoluteBoundingBox`，文本节点的 `characters` 及 `style`。
+4. **以 Figma 为准**：UI 实现必须以 Figma 设计为主，包括布局、颜色、字号、字重、间距、圆角等，不得凭空臆测。
+
+### 注意事项
+
+- 若 `join_channel` 显示未连接，提示用户先在 Figma 插件中连接并提供 channel ID。
+- node-id 格式：URL 中为 `3419-9197`，API 调用时用 `3419:9197`（把 `-` 换成 `:`）。
+- Figma 坐标是绝对坐标，Flutter 实现用 Column/Row/Wrap 等布局组件重建，不做绝对定位。
+
+---
+
+# 代码生成工作流程
+
+## 工作流程概述
+
+### 步骤 1: 任务类型判断
+
+在开始生成代码之前，**必须首先判断当前任务的类型**。根据用户的需求描述，将任务分类为以下类型之一：
+
+1. **bug_fix** - 修复 bug：修复、bug、错误、异常、崩溃、问题、不工作、失效
+2. **logic_change** - 修改逻辑：修改、改变、调整、优化、重构、改进、更新逻辑
+3. **ui_task** - 处理 UI：UI、界面、样式、布局、设计、外观、颜色、字体、按钮、页面（**仅适用于 example**）
+4. **new_feature** - 新功能：新增、添加、创建、实现、开发
+5. **refactor** - 重构：重构、代码优化、清理、整理
+6. **other** - 其他：无法明确分类的任务
+
+### 步骤 2: 判断改动范围
+
+- **lib（SDK）**：修改或新增插件对外 API、Platform Interface、Method Channel、原生层等。
+- **example（Demo）**：修改或新增演示应用的页面、UI、路由、状态、集成方式等。
+
+见 `01-项目结构说明.mdc` 确定目录与规范对应关系。
+
+### 步骤 3: 读取对应规则文件
+
+- `bug_fix` → `.cursor/rules/task-bug_fix.mdc`
+- `logic_change` → `.cursor/rules/task-logic_change.mdc`
+- `ui_task` → `.cursor/rules/task-ui_task.mdc`
+- `new_feature` → `.cursor/rules/task-new_feature.mdc`
+- `refactor` → `.cursor/rules/task-refactor.mdc`
+- `other` → `.cursor/rules/task-other.mdc`
+
+### 步骤 4: 检查 SDK/Example 复用
+
+**仅在以下情况执行**：新功能开发（`new_feature`）、UI 任务且涉及新组件使用、用户明确要求参考现有代码。
+
+- **改动在 lib（SDK）时**：
+  - 优先复用现有 Platform Interface、Method Channel、现有 API 设计。
+  - 新能力尽量扩展现有类/接口，而非随意新增入口。
+  - 在 `lib/` 下查找相似 API 或平台实现，在参考基础上适配。
+- **改动在 example 时**：
+  - 若有 `example/lib/` 下的组件或页面，优先复用。
+  - 在 `example/lib/` 下查找相似演示页面或集成方式。
+  - 若项目后续添加 `.cursor/rules/11-业务复用规则.mdc`，可按需读取。
+
+### 步骤 5: 应用规则生成代码
+
+按照读取的规则文件中的指导原则，执行代码生成任务。
+
+### 步骤 6: 验证和检查
+
+完成代码生成后，根据规则文件中的检查清单进行验证。
+
+---
+
+## 引用规范
+
+- **lib（SDK）**：
+  - 对外只通过主库文件导出（如 `package:ads_sdk_overseas/ads_sdk_overseas.dart`）。
+  - 内部可用 `part`/`part of` 或单文件组织，保持对外 API 表面简洁。
+- **example（Demo）**：
+  - 若 example 有多模块，建议只通过各模块的 `index.dart` 引用，不直接 import 模块内具体文件。
+  - 模块内依赖可集中在 `index.dart`，子文件用 `part of 'index.dart'` 或由 index 统一 export。
+
+---
+
+## 业务方法注释规范
+
+- **新生成的业务方法（含公开与私有）必须编写注释**，说明方法用途、参数含义、返回值或副作用。
+- 注释语言与项目一致（中文），可选用 Dart 文档注释 `///` 或单行 `//`；**lib 中对外公共 API 必须使用 `///`**。
+- 注释应简洁说明「做什么」「在什么场景下用」，必要时补充关键参数、返回值或对状态的影响。
+
+---
+
+## 注意事项
+
+- **必须**在开始编码前完成任务类型判断与改动范围判断（lib vs example）。
+- **必须**读取并遵循对应类型的规则文件。
+- 若任务涉及多个类型，以主要类型为准，并参考相关类型规则。
+- 若不明确任务类型，选择最接近的类型，并在注释中说明。
+
+## 规则文件说明
+
+- `01-项目结构说明.mdc`：SDK/插件工程结构，lib 与 example 职责划分
+- `task-new_feature.mdc`：新功能规范（含 lib 新增 API 与 example 新增演示）
+- `task-ui_task.mdc`：UI 任务规范（仅适用于 example）
+- 其他 task-xxx.mdc：针对特定任务类型的规范

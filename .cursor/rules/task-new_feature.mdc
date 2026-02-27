@@ -1,0 +1,89 @@
+---
+description: 新功能开发任务规则 - lib（SDK 新 API）与 example（演示）分别约定
+globs: 
+alwaysApply: false
+---
+
+# 新功能开发任务规则
+
+本规则按 **lib（SDK 新能力）** 与 **example（演示新 API）** 分别约定。开发前先明确：本次是**在 SDK 中新增能力**，还是**在 example 中新增演示页面/用法**，或两者都需要。
+
+---
+
+## 一、在 lib 中新增能力（SDK 新功能）
+
+### 1. 流程与职责
+
+- **Platform Interface**：在 `lib/ads_sdk_overseas_platform_interface.dart`（或等价抽象类）中**声明新方法**，方法需带 `///` 文档注释，说明用途、参数、返回值及可能抛出的异常。
+- **Method Channel 实现**：在 `lib/ads_sdk_overseas_method_channel.dart`（或等价实现类）中实现该方法的 **Method Channel 调用**，并将平台异常转为对调用方友好的错误或返回值。
+- **对外 API**：在 `lib/ads_sdk_overseas.dart` 的对外类（如 `AdsSdkOverseas`）中**暴露新方法**，内部委托给 `AdsSdkOverseasPlatform.instance`；对外方法必须有 `///` 文档注释。
+- **原生层**：若能力依赖原生实现，在 `android/`、`ios/` 中增加对应实现，并保持与现有 plugin 注册方式一致（见根目录 `pubspec.yaml` 的 `plugin:` 配置）。
+
+### 2. 目录与文件组织
+
+- **不采用**「pages/feature_name/view+controller」的应用式结构。
+- **采用**：lib 内按职责分文件（如 `*_platform_interface.dart`、`*_method_channel.dart`），**公开 API 仅通过主库入口文件导出**（如 `ads_sdk_overseas.dart`）；必要时可在 lib 内增加新 dart 文件，由主库 export 或 part。
+
+### 3. 兼容与文档
+
+- 若有**破坏性变更**，需在 CHANGELOG 或注释中说明。
+- 公共 API 必须使用 `///` 文档注释。
+
+### 4. 检查清单（SDK 新增 API）
+
+- [ ] Platform Interface 已声明新方法并写清文档
+- [ ] Method Channel 实现已添加，异常已妥善转换
+- [ ] 对外类（如 `AdsSdkOverseas`）已暴露新方法并写清文档
+- [ ] 若涉及原生：Android/iOS 已实现且插件注册一致
+- [ ] 无破坏性变更或已在 CHANGELOG/注释中说明
+
+---
+
+## 二、在 example 中新增演示
+
+### 1. 适用场景
+
+- 为 SDK 已有或新增的 API 在 **example** 中增加演示页面、示例调用或简单 UI。
+
+### 2. 目录与约定
+
+- 所有演示代码位于 **example/lib/** 下（如 `example/lib/main.dart`、`example/lib/pages/`、`example/lib/widgets/` 等）。
+- 若 example 已引入**路由**（如 go_router），则新页面需在 **example** 的路由配置中注册（路由配置位于 `example/lib/` 下，见 `02-导航.mdc`）。
+- 若 example 已引入 **GetX** 等状态管理，可沿用「页面 + Controller」的组织方式，但**仅限 example 内**；Controller、View、路由注册等路径均限于 `example/lib/`。
+
+### 3. UI 与规范
+
+- UI 生成与样式遵循 `task-ui_task.mdc`（仅适用于 example）；组件、主题、资源路径均以 **example** 为根（如 `example/lib/`、`example/assets/`）。
+- **不要**在 lib 中添加业务 UI 或完整 App 结构；SDK 的 lib 不包含 pages/routes/store。
+
+### 4. 检查清单（example 演示）
+
+- [ ] 新页面/组件位于 `example/lib/` 下
+- [ ] 若使用路由，已在 example 的路由中注册
+- [ ] 演示逻辑正确调用 SDK API（如 `AdsSdkOverseas()` 的实例方法）
+- [ ] UI 符合 `task-ui_task.mdc` 的约定（若涉及 UI）
+
+---
+
+## 三、通用约定
+
+- **不要使用 `Get.context`** 获取 context；在 example 的 View/Widget 中通过参数传递 context。
+- 新生成的业务方法（含公开与私有）**必须编写注释**，说明用途、参数、返回值或副作用；**lib 中对外 API 必须使用 `///`**。
+- 若项目后续添加 `.cursor/rules/11-业务复用规则.mdc`，在 example 侧可按需读取并复用组件。
+
+---
+
+## 四、执行示例
+
+**场景 A：为 SDK 新增「获取广告配置」能力**
+
+1. 在 `AdsSdkOverseasPlatform` 中声明 `Future<AdConfig?> getAdConfig()`。
+2. 在 `MethodChannelAdsSdkOverseas` 中实现该方法，调用 method channel，并处理异常。
+3. 在 `AdsSdkOverseas` 中暴露 `getAdConfig()`，内部委托 `platform.instance`。
+4. 若需原生实现，在 android/ios 中实现对应方法并注册。
+
+**场景 B：在 example 中增加「展示广告配置」页面**
+
+1. 在 `example/lib/` 下新增页面（如 `example/lib/pages/ad_config_demo.dart`），调用 `AdsSdkOverseas().getAdConfig()` 并展示结果。
+2. 若 example 使用 go_router，在 example 的路由中注册该页并添加入口。
+3. UI 与资源遵循 `task-ui_task.mdc`，路径限于 example。

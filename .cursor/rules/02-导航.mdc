@@ -1,0 +1,35 @@
+---
+description: 导航与路由 - 仅适用于 example 演示应用
+globs: 
+alwaysApply: false
+---
+# 导航（仅适用于 example）
+
+本规则仅适用于 **example** 演示应用。**lib 为 SDK，无应用级路由**。
+
+## 适用范围
+
+- 当在 **example/** 内开发多页面、需要页面跳转时，参考本规则。
+- 若 example 使用 [go_router](https://pub.dev/packages/go_router)，路由配置应位于 **example/lib/** 下（如 `example/lib/routes/`）。
+
+## 路由配置
+
+若在 example 中已建立路由结构，可包含：
+
+- `example/lib/routes/index.dart` - 路由导出
+- `example/lib/routes/name.dart` - 路由名称常量
+- `example/lib/routes/router.dart` - 路由器配置
+
+若当前 example 尚无路由，需要多页与导航时，在 **example/lib** 下按需添加 routes 目录及上述文件，并在本规则中补充实际路径说明。
+
+## 导航方式
+
+使用 go_router 时示例：
+
+```dart
+context.go('/route_path');
+// 或
+context.goNamed(RouteName.routeName, params: {'param': 'value'});
+```
+
+嵌套导航在路由器配置中以层次结构组织。

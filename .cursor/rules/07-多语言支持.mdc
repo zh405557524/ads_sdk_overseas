@@ -1,0 +1,41 @@
+---
+description: 多语言支持 - 仅适用于 example 演示应用
+globs: 
+alwaysApply: false
+---
+# 多语言支持（仅适用于 example）
+
+本规则仅适用于 **example** 演示应用。**lib 为 SDK，不包含应用级多语言配置**。
+
+## 适用范围
+
+- 多语言在 **example** 内配置，入口为 `example/lib/main.dart`（或 example 的 main 入口文件）。
+- 若 example 当前无多语言，需要时可在此处配置。
+
+## 语言配置
+
+在 example 的 main 或 MaterialApp 中配置，例如：
+
+```dart
+localizationsDelegates: const [
+  GlobalMaterialLocalizations.delegate,
+  GlobalCupertinoLocalizations.delegate,
+  GlobalWidgetsLocalizations.delegate,
+],
+supportedLocales: const [
+  Locale.fromSubtags(languageCode: 'en'),
+  Locale.fromSubtags(languageCode: 'zh'),
+],
+```
+
+## 使用方式
+
+- 使用 Flutter 的本地化机制
+- 根据系统语言自动切换界面语言
+- 用户可见文本应使用本地化字符串，避免硬编码
+
+## 最佳实践
+
+- 用户可见文本尽量支持本地化
+- 日期、时间、数字等按语言环境格式化
+- 考虑不同语言文本长度对 UI 布局的影响

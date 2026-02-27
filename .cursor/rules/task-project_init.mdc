@@ -1,0 +1,114 @@
+---
+description: 项目初始化规则 - Flutter 插件（SDK）初始化 与 example 应用初始化
+globs: 
+alwaysApply: false
+---
+
+# 项目初始化规则（SDK/插件工程）
+
+本仓库为 **Flutter 插件/SDK** 工程：**lib** 为对外 SDK，**example** 为演示应用。初始化时需区分两种场景，见 `01-项目结构说明.mdc`。
+
+---
+
+## 使用场景与触发词
+
+- **场景 A**：新建/初始化 **Flutter 插件（SDK）项目**（整仓结构）
+  - 触发词：初始化插件、新建插件、创建 Flutter 插件、生成插件模板、SDK 项目结构
+- **场景 B**：在 **example** 内搭建完整 **Demo 应用**（多页、路由、状态管理、主题等）
+  - 触发词：初始化 example、搭建 example 应用、example 完整结构、Demo 应用模板
+
+---
+
+## 场景 A：Flutter 插件（SDK）项目初始化
+
+### 目标结构
+
+生成与当前工程一致的 **插件** 结构：
+
+```
+项目根目录/
+├── pubspec.yaml          # 根包：name、plugin 配置（android/ios pluginClass、package）
+├── lib/
+│   ├── xxx.dart          # 主库入口，对外导出 API（如 AdsSdkOverseas 类）
+│   ├── xxx_platform_interface.dart   # Platform Interface 抽象类
+│   └── xxx_method_channel.dart       # Method Channel 实现
+├── example/
+│   ├── pubspec.yaml      # 依赖 path: ../
+│   └── lib/
+│       └── main.dart     # 最小 Demo：runApp + 调用 SDK 的简单 UI
+├── android/              # 插件 Android 实现与注册
+├── ios/                  # 插件 iOS 实现与注册
+└── test/                 # SDK 单元测试
+```
+
+### 要点
+
+- **根 pubspec.yaml**：包含 `flutter.plugin` 配置，指定 Android `package`/`pluginClass`、iOS `pluginClass`。
+- **lib**：仅包含对外 API、Platform Interface、Method Channel 实现；**不**包含 pages、routes、store、main 等应用级代码；公开 API 仅通过主库文件（如 `xxx.dart`）导出。
+- **example**：独立 Flutter 应用，`example/pubspec.yaml` 中 `dependencies` 使用 `path: ../` 依赖根目录插件；`example/lib/main.dart` 为 Demo 入口，可调用 SDK 并做简单 UI 展示。
+- **android/、ios/**：实现并注册插件类，与 `pubspec.yaml` 中 `plugin` 配置一致。
+
+### 检查清单（插件初始化）
+
+- [ ] 根目录 `pubspec.yaml` 含 `plugin` 配置且与 android/ios 注册一致
+- [ ] `lib/` 有主库入口、Platform Interface、Method Channel 实现，且无应用级结构（无 pages/routes/store）
+- [ ] `example/pubspec.yaml` 依赖 `path: ../`
+- [ ] `example/lib/main.dart` 可运行并调用 SDK
+- [ ] android/ios 插件已实现并注册
+- [ ] 可选：`test/` 下有基础单元测试
+
+---
+
+## 场景 B：example 内完整 Demo 应用初始化
+
+### 适用范围
+
+仅在 **example/** 目录内生成多页、路由、状态管理、主题等「完整应用」结构。**不**在根目录的 **lib/** 中生成上述内容（lib 仅保留 SDK 代码）。
+
+### 目标结构（均在 example 下）
+
+```
+example/
+├── pubspec.yaml          # 依赖 path: ../ 及所需包（如 go_router、get、flutter_screenutil 等）
+├── lib/
+│   ├── main.dart         # 应用入口：runApp、主题、路由、初始化
+│   ├── theme.dart        # 主题与颜色常量（可选）
+│   ├── routes/           # 路由配置（若使用 go_router）
+│   │   ├── index.dart
+│   │   ├── router.dart
+│   │   └── name.dart
+│   ├── pages/            # 功能页面（含 view/controller，若用 GetX）
+│   │   ├── main/
+│   │   └── ...
+│   ├── store/            # 全局状态（若用 GetX）
+│   ├── services/         # 服务层（可选）
+│   ├── widgets/          # 通用组件（可选）
+│   └── utils/             # 工具类（可选）
+└── assets/                # 资源（在 example/pubspec.yaml 中声明）
+```
+
+### 要点
+
+- 所有「应用」相关代码与资源均在 **example/** 下；根目录 **lib/** 不新增 pages、routes、store、theme、main。
+- 若使用 go_router，路由配置在 `example/lib/routes/`；若使用 GetX，store 与 Controller 在 `example/lib/` 下组织。
+- 主题、多语言、屏幕适配等均在 **example** 的 main 或对应文件中配置（见 `02-导航.mdc`、`07-多语言支持.mdc`、`task-ui_task.mdc`）。
+
+### 检查清单（example 应用初始化）
+
+- [ ] 所有新增代码与资源均在 **example/** 下，未改动根目录 **lib/** 的 SDK 代码
+- [ ] `example/lib/main.dart` 可运行，能跳转/展示 Demo 页面
+- [ ] 若使用路由：路由在 example 内注册并可用
+- [ ] 若使用状态管理：store/controller 在 example 内初始化并使用
+- [ ] 主题/资源（若需）在 example 内配置
+- [ ] 依赖已在 `example/pubspec.yaml` 中声明
+
+---
+
+## 小结
+
+| 场景 | 作用范围 | 产物 |
+|------|----------|------|
+| 场景 A：插件初始化 | 整仓 | 根 lib（SDK）+ example 最小 Demo + android/ios 插件 |
+| 场景 B：example 应用初始化 | 仅 example/ | example 内多页、路由、状态、主题等完整 Demo 结构 |
+
+详细工程结构说明见 `01-项目结构说明.mdc`。
