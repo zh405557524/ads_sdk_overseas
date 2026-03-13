@@ -4,7 +4,8 @@ version: 0.0.1
 homepage:
 
 environment:
-  sdk: ^3.11.0
+  # 使用 ^3.5.0 可兼容当前 beta（3.11.0-200.1.beta）；若团队统一用稳定版，可改回 ^3.11.0
+  sdk: '>=3.5.0 <4.0.0'
   flutter: '>=3.3.0'
 
 dependencies:
