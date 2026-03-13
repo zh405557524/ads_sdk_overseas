@@ -27,8 +27,10 @@ class _AdsDemoPageState extends State<AdsDemoPage> {
   Future<void> _onSplash() async {
     _showSnackBar('开屏广告加载中…');
     try {
-      await widget.adsManager.loadAndShowSplashAd();
-      if (mounted) _showSnackBar('开屏广告已关闭');
+      final ok = await widget.adsManager.loadAndShowSplashAd();
+      if (mounted) {
+        _showSnackBar(ok ? '开屏广告已关闭' : '开屏广告加载或展示失败');
+      }
     } catch (e) {
       if (mounted) {
         _showSnackBar('开屏广告失败: $e');

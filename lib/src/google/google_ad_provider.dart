@@ -9,6 +9,7 @@ import '../ad_provider.dart';
 /// Google 广告实现，内部使用 [google_mobile_ads]。
 class GoogleAdProvider implements AdProvider {
   AdsConfig? _config;
+  AppOpenAd? _appOpenAd;
 
   @override
   Future<void> initialize(AdsConfig config) async {
@@ -23,31 +24,43 @@ class GoogleAdProvider implements AdProvider {
   }
 
   @override
-  Future<void> loadAndShowSplashAd() async {
+  Future<bool> loadAndShowSplashAd() async {
     final id = _c.splashAdUnitId;
     if (id == null || id.isEmpty) throw StateError('splashAdUnitId not set in AdsConfig');
-    final completer = _AdCompleter<void>();
+    final completer = _AdCompleter<bool>();
     AppOpenAd.load(
       adUnitId: id,
       request: const AdRequest(),
       adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
+          _appOpenAd = ad;
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (a) {
               a.dispose();
-              completer.complete();
+              _appOpenAd = null;
+              completer.complete(true);
             },
             onAdFailedToShowFullScreenContent: (a, e) {
               a.dispose();
-              completer.completeError(e);
+              _appOpenAd = null;
+              completer.complete(false);
             },
           );
           ad.show();
         },
-        onAdFailedToLoad: (e) => completer.completeError(e),
+        onAdFailedToLoad: (e) => completer.complete(false),
       ),
     );
     return completer.future;
+  }
+
+  @override
+  void closeSplashAd() {
+    final ad = _appOpenAd;
+    if (ad != null) {
+      _appOpenAd = null;
+      ad.dispose();
+    }
   }
 
   @override

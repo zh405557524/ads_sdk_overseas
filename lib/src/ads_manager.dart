@@ -27,8 +27,11 @@ class AdsManager {
     return p;
   }
 
-  /// 开屏广告：加载并展示
-  Future<void> loadAndShowSplashAd() => _p.loadAndShowSplashAd();
+  /// 开屏广告：加载并展示。播放失败返回 false，手动点击关闭或正常播放完成返回 true。
+  Future<bool> loadAndShowSplashAd() => _p.loadAndShowSplashAd();
+
+  /// 开屏广告：主动关闭当前正在展示的开屏广告（若存在）
+  void closeSplashAd() => _p.closeSplashAd();
 
   /// 横幅广告：加载并返回可嵌入的 Widget
   Future<Widget> loadBannerAd() => _p.loadBannerAd();
