@@ -6,6 +6,14 @@ import 'google/index.dart';
 
 /// 广告管理类，对外统一入口。提供初始化及 6 种广告类型（开屏、横幅、插屏、激励视频、原生、信息流）的加载/展示方法。
 class AdsManager {
+  /// 单例实例。
+  static final AdsManager instance = AdsManager._internal();
+
+  /// 工厂构造：始终返回同一个 [AdsManager]，避免出现多个管理对象导致状态不一致。
+  factory AdsManager() => instance;
+
+  AdsManager._internal();
+
   AdProvider? _provider;
 
   /// 初始化 SDK，传入 [AdsConfig]（含 App ID、各广告位 ID 等）。
